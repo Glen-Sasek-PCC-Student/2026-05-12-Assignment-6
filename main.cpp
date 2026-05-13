@@ -34,19 +34,26 @@
 // ------------- CODE -------------
 #include <iostream>
 #include <limits>
+#include <iomanip> // For setprecision
+#include <cctype>  // For tolower
 
 using namespace std;
 
 // Function prototypes (if any)
 
+const float COFFEE_USD = 0.39;
+const float TEA_USD = 0.59;
 
 // Main function
 // https://en.cppreference.com/w/cpp/language/main_function.html
 int main(int argc, char* argv[]) {
+    cout << fixed << setprecision(2) << endl;
+
     cout << "Welcome to my Coffee/Tea Vending Machine!" << endl;
 
     bool next_main_loop = true;
     double balance_USD = 0.0;
+
     while(next_main_loop) {
         // Get Coins
         bool next_coin = true;
@@ -54,6 +61,12 @@ int main(int argc, char* argv[]) {
             bool invalid_input = false;
             int coin = -1;
             cout << "Enter coins - 5, 10, or 25 only [0 to end input]: ";
+
+            if(cin.peek() == EOF) {
+                cerr << endl << endl << "DETECTED END OF FILE EXITING PROGRAM" << endl;
+                return 2;
+            }
+
             cin >> coin;
             if(cin) {
                 switch(coin) {
@@ -78,31 +91,31 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        cout << "Your balance is $" << balance_USD << endl;
+
         // Get choice and count
         bool next_option = true;
-        bool next_how_many = false;
         char option = '\0';
+        char lower_option = '\0';
+        float option_USD = 0.0;
         while(next_option) {
-            cout << "Please pick an option ($0.25 each):" << endl;
-            cout << "    C/c: Coffee" << endl;
-            cout << "    T/t: Tea" << endl;
+            cout << "Please pick an option:" << endl;
+            cout << "    C/c: Coffee [" << COFFEE_USD << "]" << endl;
+            cout << "    T/t: Tea[" << TEA_USD << "]" << endl;
             cout << "    Q/q: Quit" << endl;
-            
-            
             cin >> option;
-            // Validate
+            lower_option = tolower(option); 
+
             next_option = false;
-            switch(option) {
+            switch(lower_option) {
                 case 'c':
-                    cout << "TODO: COFFEE!!" << endl;
-                    next_how_many = true;
+                    option_USD = COFFEE_USD;
                     break;
                 case 't':
-                    cout << "TODO: TEA!!" << endl;
-                    next_how_many = true;
+                    option_USD = TEA_USD;
                     break;
                 case 'q':
-                    next_main_loop = false;
+                    option_USD = 0.0;
                     break;
                 default:
                     cout << "Invalid Option! Please choose a valid option!" << endl;
@@ -111,15 +124,28 @@ int main(int argc, char* argv[]) {
         }
 
         int how_many = 0;
+        bool next_how_many = true;
         while(next_how_many) {
-            cout << "How many would you like?" << endl;
-            cin >> how_many;
-            if(cin) {
+            if(lower_option != 'q') {
+                cout << "How many would you like?" << endl;
+                cin >> how_many;
+            }
+            if(cin && how_many >= 0) {
                 // process sale, check balance, etc...
-                cout << "TODO: Check cost and balance" << endl;
-                cout << "TODO: Make sale or get more coins" << endl;
-                next_main_loop = false;
                 next_how_many = false;
+
+                float total_USD = option_USD * how_many;
+                cout << "Your total is $" << total_USD << endl;
+
+                float change_USD = balance_USD - total_USD;
+                
+                if(change_USD >= 0) {
+                    cout << "Your change is $" << change_USD << endl;
+                    next_main_loop = false;
+                } else {
+                    cout << "Your balance is $" << balance_USD << endl;
+                    cout << "Not enough change!! Please add more coins.";
+                }
             } else {
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
